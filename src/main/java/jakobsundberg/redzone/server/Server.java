@@ -43,7 +43,7 @@ public class Server {
         return users.get(username);
     }
 
-    public void createGame(String username, int deckListId) {
+    public Game createGame(String username, int deckListId) {
         User user = users.get(username);
         Game game = new Game();
         DeckList deckList = deckLists.get(deckListId);
@@ -51,15 +51,17 @@ public class Server {
         players.put(player1.id, player1);
         game.join(player1);
         games.put(game.id, game);
+        return game;
     }
 
-    public void joinGame(int gameId, String username, int deckListId) {
+    public Game joinGame(int gameId, String username, int deckListId) {
         User user = users.get(username);
         Game game = games.get(gameId);
         DeckList deckList = deckLists.get(deckListId);
         Player player2 = new Player(user, createDeck(deckList));
         game.join(player2);
         players.put(player2.id, player2);
+        return game;
     }
 
     public Collection<Game> getGames() {

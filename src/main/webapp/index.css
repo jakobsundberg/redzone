@@ -1,0 +1,11 @@
+#gamesArea, #gameArea{
+    display:none;
+}
+
+table,tr,td{
+    border:1px solid red;
+}
+
+table{
+    margin-bottom:20px;
+}

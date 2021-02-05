@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Red Zone</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div id="loginArea">
+        <h1>Red Zone Login</h1>
+        <form>
+            <input id="loginUsername" type="text"/>
+            <input id="loginSubmitButton" type="submit"/>
+        </form>
+    </div>
+    <div id="gamesArea">
+        <h1>Red Zone Games</h1>
+        <table>
+            <thead>
+                <tr>
+                    <td>Id</td>
+                    <td>Players</td>
+                    <td>Join</td>
+                </tr>
+            </thead>
+            <tbody id="games"></tbody>
+        </table>
+        <button id="createGameButton">Start new game</button>
+    </div>
+    <div id="gameArea">
+        <h1 id="gameTitle"></h1>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
