@@ -2,6 +2,7 @@ var username;
 
 document.getElementById("loginSubmitButton").onclick = function(){
     username = document.getElementById("loginUsername").value;
+    document.getElementById("loggedInArea").innerHTML = "Logged in as: " + username;
     document.getElementById("loginArea").style.display="none";
     document.getElementById("gamesArea").style.display="inherit";
     return false;
