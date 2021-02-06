@@ -1,4 +1,9 @@
 var username;
+var gameId;
+var cards = {};
+var players = {};
+var playerId;
+var opponentId;
 
 document.getElementById("loginSubmitButton").onclick = function(){
     username = document.getElementById("loginUsername").value;
@@ -44,15 +49,12 @@ window.setInterval(function(){
 }, 1000);
 
 document.getElementById("createGameButton").onclick = function(){
-    document.getElementById("gamesArea").style.display="none";
-    document.getElementById("gameArea").style.display="inherit";
-
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var data = JSON.parse(this.responseText);
-            var gameTitle = document.getElementById("gameTitle");
-            gameTitle.innerHTML = "Game " + data.gameId;
+            gameId = data.gameId;
+            startGame(data.gameId);
         }
     };
 
@@ -60,19 +62,197 @@ document.getElementById("createGameButton").onclick = function(){
     xhttp.send();
 };
 
-function joinGame(gameId){
-    document.getElementById("gamesArea").style.display="none";
-    document.getElementById("gameArea").style.display="inherit";
-
+function joinGame(gameIdParameter){
+    gameId = gameIdParameter;
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var data = JSON.parse(this.responseText);
-            var gameTitle = document.getElementById("gameTitle");
-            gameTitle.innerHTML = "Game " + data.gameId;
+            startGame(data.gameId);
         }
     };
 
     xhttp.open("GET", "/joinGame?deckListId=0&username=" + username + "&gameId=" + gameId, true);
     xhttp.send();
 }
+
+function startGame(gameId){
+    document.getElementById("gamesArea").style.display="none";
+    document.getElementById("gameArea").style.display="inherit";
+    var gameTitle = document.getElementById("gameTitle");
+    gameTitle.innerHTML = "Game " + gameId;
+    var nextMessage = 0;
+    var eventPoller = window.setInterval(function(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var data = JSON.parse(this.responseText);
+                nextMessage += data.events.length;
+                data.events.forEach(function(event){
+                    switch(event.type){
+                        case "Join":
+                            handleJoinEvent(event);
+                            break;
+                        case "Draw":
+                            handleDrawEvent(event);
+                            break;
+                        case "SetLifeTotal":
+                            handleSetLifeTotalEvent(event);
+                            break;
+                        case "GameTurn":
+                            handleGameTurnEvent(event);
+                            break;
+                        case "PlayerTurn":
+                            handlePlayerTurnEvent(event);
+                            break;
+                        case "PhaseChange":
+                            handlePhaseChangeEvent(event);
+                            break;
+                        case "Play":
+                            handlePlayEvent(event);
+                            break;
+                        case "Activate":
+                            handleActivateEvent(event);
+                            break;
+                        case "DeclareAttackers":
+                            handleDeclareAttackersEvent(event);
+                            break;
+                        case "Tap":
+                            handleTapEvent(event);
+                            break;
+                        case "Untap":
+                            handleUntapEvent(event);
+                            break;
+                        case "ManaPool":
+                            handleManaPoolEvent(event);
+                            break;
+                        case "Death":
+                            handleDeathEvent(event);
+                            break;
+                        case "Victory":
+                            handleVictoryEvent(event);
+                            break;
+                        case "ClearAttackers":
+                            handleClearAttackersEvent(event);
+                            break;
+                        case "CardInfo":
+                            handleCardInfoEvent(event);
+                            break;
+                        default:
+                            console.log("Unhandld event: "+event.type);
+                            break;
+                    }
+                });
+            }
+        };
+
+        xhttp.open("GET", "/getGameEvents?gameId="+gameId+"&from="+nextMessage, true);
+        xhttp.send();
+    }, 100);
+}
+
+function handleJoinEvent(event){
+    var player = {}
+    player.id = event.playerId;
+    player.name = event.playerName;
+    players[event.playerId] = player;
+
+    if(player.name == username){
+        playerId = player.id;
+        document.getElementById("playerNameArea").innerHTML = "Player name: " + player.name;
+    }
+    else{
+        opponentId = player.id;
+        document.getElementById("opponentNameArea").innerHTML = "Opponent name: " + player.name;
+    }
+}
+
+function handleDrawEvent(event){
+    var card = cards[event.cardId];
+    var isPlayer = event.playerId == playerId;
+    var handAreaId = isPlayer ? "playerHandArea" : "opponentHandArea";
+    var handArea = document.getElementById(handAreaId);
+    card.element = document.createElement("img");
+    card.element.src = "http://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=" + card.multiverseId;
+    card.element.onclick = function(){
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/play?gameId="+gameId+"&cardId=" + card.id, true);
+        xhttp.send();
+    }
+    handArea.prepend(card.element);
+}
+
+function handleSetLifeTotalEvent(event){
+    if(event.playerId == playerId){
+        document.getElementById("playerLifeArea").innerHTML = "Player life: " + event.lifeTotal;
+    }
+    else{
+        document.getElementById("opponentLifeArea").innerHTML = "Opponent life: " + event.lifeTotal;
+    }
+}
+
+function handleGameTurnEvent(event){
+    document.getElementById("gameTurn").innerHTML = "Game turn: " + event.turn;
+}
+
+function handlePlayerTurnEvent(event){
+    var player = players[event.playerId];
+    document.getElementById("playerTurn").innerHTML = "Player turn: " + player.name;
+}
+
+function handlePhaseChangeEvent(event){
+    document.getElementById("phaseName").innerHTML = "Phase: " + event.phase;
+}
+
+function handlePlayEvent(event){
+    var card = cards[event.cardId];
+    var isPlayer = event.playerId == playerId;
+    var battlefieldAreaId = isPlayer ? "playerBattlefieldArea" : "opponentBattlefieldArea";
+    var battlefieldArea = document.getElementById(battlefieldAreaId);
+    battlefieldArea.appendChild(card.element);
+    card.element.onclick = null;
+}
+
+function handleActivateEvent(event){
+}
+
+function handleDeclareAttackersEvent(event){
+}
+
+function handleTapEvent(event){
+}
+
+function handleUntapEvent(event){
+}
+
+function handleManaPoolEvent(event){
+    if(event.playerId == playerId){
+        document.getElementById("playerManaArea").innerHTML = "Player mana: " + event.mana;
+    }
+    else{
+        document.getElementById("opponentManaArea").innerHTML = "Opponent mana: " + event.mana;
+    }
+}
+
+function handleDeathEvent(event){
+}
+
+function handleVictoryEvent(event){
+}
+
+function handleClearAttackersEvent(event){
+}
+
+function handleCardInfoEvent(event){
+    var card = {}
+    card.id = event.cardId;
+    card.name = event.cardName;
+    card.multiverseId = event.multiverseId;
+    cards[event.cardId] = card;
+}
+
+document.getElementById("passPriorityButton").onclick = function(){
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/passPriority?gameId=" + gameId, true);
+    xhttp.send();
+};

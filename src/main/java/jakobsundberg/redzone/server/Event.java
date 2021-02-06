@@ -21,15 +21,15 @@ public class Event {
     }
 
     public String toString(){
-        String result = "{\"eventType\":\""+type+"\",";
+        String result = "{";
 
         for(Map.Entry<String, String> entry : extraData.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             result += "\"" + key + "\":\"" + value + "\",";
         }
-        result+="}";
 
+        result+="\"type\":\""+type+"\"}";
         return result;
     }
 }

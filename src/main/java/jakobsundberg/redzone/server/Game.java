@@ -5,7 +5,6 @@ import java.util.*;
 import static jakobsundberg.redzone.server.EventType.*;
 
 public class Game {
-
     public static int MAX_SEATS = 2;
     static int counter = 0;
     public Map<Card, Player> attackers;
@@ -40,6 +39,9 @@ public class Game {
         Collections.shuffle(players);
 
         for(Player player : players){
+            setPlayerLife(player, 20);
+            setPlayerMana(player, 0);
+
             for(Card card : player.deck){
                 Event event = new Event(CardInfo);
                 event.addExtraData("multiverseId", card.cardIdentity.multiverseId);
@@ -51,21 +53,33 @@ public class Game {
             Collections.shuffle(player.deck);
 
             for(int i=0; i<7; i++){
-                Card card = player.deck.remove(0);
-                Event event = new Event(Draw);
-                event.addExtraData("playerId", player.id);
-                event.addExtraData("cardId", card.id);
-                events.add(event);
-                player.hand.add(card);
+                drawCard(player);
             }
         }
 
         playerTurn = players.get(0);
         gameTurn = 0;
         Event event = new Event(GameTurn);
-        event.addExtraData("turnCount", gameTurn);
+        event.addExtraData("turn", gameTurn);
         events.add(event);
         startPlayerTurn();
+    }
+
+    public void drawCard(Player player){
+        Card card = player.deck.remove(0);
+        Event event = new Event(Draw);
+        event.addExtraData("playerId", player.id);
+        event.addExtraData("cardId", card.id);
+        events.add(event);
+        player.hand.add(card);
+    }
+
+    private void setPlayerLife(Player player, int amount) {
+        player.life = amount;
+        Event lifeEvent = new Event(SetLifeTotal);
+        lifeEvent.addExtraData("playerId", player.id);
+        lifeEvent.addExtraData("lifeTotal", player.life);
+        events.add(lifeEvent);
     }
 
     private void startPlayerTurn() {
@@ -87,7 +101,6 @@ public class Game {
 
     private void changePhase(Phase phase) {
         this.phase = phase;
-
         Event event = new Event(PhaseChange);
         event.addExtraData("phase", String.valueOf(phase));
         events.add(event);
@@ -95,12 +108,7 @@ public class Game {
 
     private void startDrawPhase() {
         changePhase(Phase.DRAW);
-        Card card = playerTurn.deck.remove(0);
-        Event event = new Event(Draw);
-        event.addExtraData("playerId", playerTurn.id);
-        event.addExtraData("cardId", card.id);
-        events.add(event);
-        playerTurn.hand.add(card);
+        drawCard(playerTurn);
         startPrecombatMainphase();
     }
 
@@ -109,7 +117,6 @@ public class Game {
     }
 
     public void passPriority(){
-
         if(phase == Phase.PRECOMBAT_MAINPHASE){
             setPlayerMana(playerTurn, 0);
             startAttackPhase();
@@ -140,11 +147,7 @@ public class Game {
                 Event event = new Event(Tap);
                 event.addExtraData("cardId", attacker.id);
                 events.add(event);
-                target.life-= attacker.power;
-                Event lifeEvent = new Event(SetLifeTotal);
-                lifeEvent.addExtraData("playerId", target.id);
-                lifeEvent.addExtraData("lifeTotal", target.life);
-                events.add(lifeEvent);
+                setPlayerLife(target, target.life - attacker.power);
 
                 if(target.life <= 0){
                     players.remove(target);
@@ -157,10 +160,6 @@ public class Game {
                         Event winEvent = new Event(Victory);
                         winEvent.addExtraData("playerId", winner.id);
                         events.add(winEvent);
-                        attackers.clear();
-                        Event clearEvent = new Event(ClearAttackers);
-                        events.add(clearEvent);
-                        changePhase(null);
                         return;
                     }
                 }
@@ -173,11 +172,11 @@ public class Game {
         }
     }
 
-    private void setPlayerMana(Player player, int amount) {
+    public void setPlayerMana(Player player, int amount) {
         player.mana = amount;
         Event event = new Event(ManaPool);
         event.addExtraData("playerId", player.id);
-        event.addExtraData("manaAmount", player.mana);
+        event.addExtraData("mana", player.mana);
         events.add(event);
     }
 

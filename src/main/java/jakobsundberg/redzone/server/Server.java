@@ -29,6 +29,7 @@ public class Server {
 
         for (CardIdentity cardIdentity : database.getCardIdentities()) {
             cardIdentities.put(cardIdentity.multiverseId, cardIdentity);
+
             for(ActivatedAbility activatedAbility : cardIdentity.activatedAbilities){
                 activatedAbilities.put(activatedAbility.id, activatedAbility);
             }
@@ -39,33 +40,25 @@ public class Server {
         }
     }
 
-    public User getUser(String username) {
-        return users.get(username);
-    }
-
     public Game createGame(String username, int deckListId) {
         User user = users.get(username);
-        Game game = new Game();
         DeckList deckList = deckLists.get(deckListId);
-        Player player1 = new Player(user, createDeck(deckList));
-        players.put(player1.id, player1);
-        game.join(player1);
+        Game game = new Game();
         games.put(game.id, game);
+        Player player = new Player(user, createDeck(deckList));
+        players.put(player.id, player);
+        game.join(player);
         return game;
     }
 
     public Game joinGame(int gameId, String username, int deckListId) {
-        User user = users.get(username);
         Game game = games.get(gameId);
+        User user = users.get(username);
         DeckList deckList = deckLists.get(deckListId);
-        Player player2 = new Player(user, createDeck(deckList));
-        game.join(player2);
-        players.put(player2.id, player2);
+        Player player = new Player(user, createDeck(deckList));
+        game.join(player);
+        players.put(player.id, player);
         return game;
-    }
-
-    public Collection<Game> getGames() {
-        return games.values();
     }
 
     private List<Card> createDeck(DeckList deckList) {
@@ -79,13 +72,16 @@ public class Server {
             }
         }
 
-        Collections.shuffle(result);
         return result;
     }
 
-    public void declareAttacker(int gameId, int creatureId, int targetId) {
+    public Collection<Game> getGames() {
+        return games.values();
+    }
+
+    public void declareAttacker(int gameId, int cardId, int targetId) {
         Game game = games.get(gameId);
-        Card attacker = cards.get(creatureId);
+        Card attacker = cards.get(cardId);
         Player target = players.get(targetId);
         game.declareAttacker(attacker, target);
     }
@@ -103,7 +99,12 @@ public class Server {
 
     public List<Event> getGameEvents(int gameId, int from) {
         Game game = games.get(gameId);
-        return game.events.subList(from, game.events.size());
+        if(from >= game.events.size()){
+            return new ArrayList<>();
+        }
+        else {
+            return game.events.subList(from, game.events.size());
+        }
     }
 
     public void activate(int gameId, int cardId, int activatedAbilityId){
