@@ -15,15 +15,15 @@ public class ActivatedAbility {
         this.effects = effects;
     }
 
-    public void pay(Player owner, Card source){
+    public void pay(Game game, Player owner, Card source){
         for(Cost cost : costs){
-            cost.pay(owner, source);
+            cost.pay(game, owner, source);
         }
     }
 
-    public void takeEffect(Player owner, Card source){
+    public void takeEffect(Game game, Player owner, Card source){
         for(Effect effect : effects){
-            effect.takeEffect(owner, source);
+            effect.takeEffect(game, owner, source);
         }
     }
 

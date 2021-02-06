@@ -101,9 +101,9 @@ public class Server {
         game.play(game, card);
     }
 
-    public List<String> getGameEvents(int gameId) {
+    public List<Event> getGameEvents(int gameId, int from) {
         Game game = games.get(gameId);
-        return game.events;
+        return game.events.subList(from, game.events.size());
     }
 
     public void activate(int gameId, int cardId, int activatedAbilityId){

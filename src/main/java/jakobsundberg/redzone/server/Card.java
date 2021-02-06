@@ -33,9 +33,9 @@ public class Card {
         isTapped = false;
     }
 
-    public void payCosts(Player owner){
+    public void payCosts(Game game, Player owner){
         for(Cost cost : costs){
-            cost.pay(owner, this);
+            cost.pay(game, owner, this);
         }
     }
 

@@ -1,5 +1,5 @@
 package jakobsundberg.redzone.server;
 
 public interface Cost {
-    public void pay(Player owner, Card source);
+    public void pay(Game game, Player owner, Card source);
 }

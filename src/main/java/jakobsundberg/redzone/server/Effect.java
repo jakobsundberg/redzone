@@ -1,5 +1,5 @@
 package jakobsundberg.redzone.server;
 
 public interface Effect {
-    public void takeEffect(Player owner, Card source);
+    public void takeEffect(Game game, Player owner, Card source);
 }
