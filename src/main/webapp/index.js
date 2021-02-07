@@ -4,6 +4,7 @@ var cards = {};
 var players = {};
 var playerId;
 var opponentId;
+var phase;
 
 document.getElementById("loginSubmitButton").onclick = function(){
     username = document.getElementById("loginUsername").value;
@@ -201,6 +202,7 @@ function handlePlayerTurnEvent(event){
 }
 
 function handlePhaseChangeEvent(event){
+    phase = event.phase;
     document.getElementById("phaseName").innerHTML = "Phase: " + event.phase;
 }
 
@@ -210,19 +212,41 @@ function handlePlayEvent(event){
     var battlefieldAreaId = isPlayer ? "playerBattlefieldArea" : "opponentBattlefieldArea";
     var battlefieldArea = document.getElementById(battlefieldAreaId);
     battlefieldArea.appendChild(card.element);
-    card.element.onclick = null;
+    card.element.onclick = function(){
+        if(phase == "COMBAT"){
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/declareAttacker?gameId="+gameId+"&creatureId=" + card.id+"&targetId="+opponentId, true);
+            xhttp.send();
+        }
+        else{
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/activate?gameId="+gameId+"&cardId=" + card.id+"&activatedAbilityId="+card.activatedAbilityId, true);
+            xhttp.send();
+        }
+    }
 }
 
 function handleActivateEvent(event){
 }
 
 function handleDeclareAttackersEvent(event){
+    var card = cards[event.cardId];
+    var isPlayer = event.playerId == playerId;
+    var redZoneAreaId = isPlayer ? "playerRedZoneArea" : "opponentRedZoneArea";
+    var redZoneArea = document.getElementById(redZoneAreaId);
+    redZoneArea.prepend(card.element);
 }
 
 function handleTapEvent(event){
+     var card = cards[event.cardId];
+     card.tapped = true;
+     card.element.style.transform = 'rotate(90deg)';
 }
 
 function handleUntapEvent(event){
+     var card = cards[event.cardId];
+     card.tapped = false;
+     card.element.style.transform = '';
 }
 
 function handleManaPoolEvent(event){
@@ -235,12 +259,21 @@ function handleManaPoolEvent(event){
 }
 
 function handleDeathEvent(event){
+    var player = players[event.playerId];
+    alert(player.name+" has been eliminated");
 }
 
 function handleVictoryEvent(event){
+     var player = players[event.playerId];
+     alert(player.name+" won the game.");
 }
 
 function handleClearAttackersEvent(event){
+    var card = cards[event.cardId];
+    var isPlayer = event.playerId == playerId;
+    var battlefieldAreaId = isPlayer ? "playerBattlefieldArea" : "opponentBattlefieldArea";
+    var battlefieldArea = document.getElementById(battlefieldAreaId);
+    battlefieldArea.prepend(card.element);
 }
 
 function handleCardInfoEvent(event){
@@ -248,6 +281,7 @@ function handleCardInfoEvent(event){
     card.id = event.cardId;
     card.name = event.cardName;
     card.multiverseId = event.multiverseId;
+    card.activatedAbilityId = event.activatedAbilityId;
     cards[event.cardId] = card;
 }
 
@@ -255,4 +289,4 @@ document.getElementById("passPriorityButton").onclick = function(){
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/passPriority?gameId=" + gameId, true);
     xhttp.send();
-};
+}

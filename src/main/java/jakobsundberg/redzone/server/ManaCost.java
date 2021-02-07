@@ -15,7 +15,7 @@ public class ManaCost implements Cost{
         payer.mana -= amount;
         Event event = new Event(ManaPool);
         event.addExtraData("playerId", payer.id);
-        event.addExtraData("amount", payer.mana);
+        event.addExtraData("mana", payer.mana);
         game.events.add(event);
     }
 

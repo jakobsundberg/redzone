@@ -47,6 +47,10 @@ public class Game {
                 event.addExtraData("multiverseId", card.cardIdentity.multiverseId);
                 event.addExtraData("cardName", card.cardIdentity.name);
                 event.addExtraData("cardId", card.id);
+                if(card.activatedAbilities.size() != 0){
+                    ActivatedAbility activatedAbility = card.activatedAbilities.get(0);
+                    event.addExtraData("activatedAbilityId", activatedAbility.id);
+                }
                 events.add(event);
             }
 
@@ -165,9 +169,14 @@ public class Game {
                 }
             }
 
+            for(Card attacker : attackers.keySet()){
+                Event clearEvent = new Event(ClearAttackers);
+                clearEvent.addExtraData("playerId", playerTurn.id);
+                clearEvent.addExtraData("cardId", attacker.id);
+                events.add(clearEvent);
+            }
+
             attackers.clear();
-            Event clearEvent = new Event(ClearAttackers);
-            events.add(clearEvent);
             changePhase(Phase.POSTCOMBAT_MAINPHASE);
         }
     }
