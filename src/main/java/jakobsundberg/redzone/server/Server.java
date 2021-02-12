@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Server {
     public static Server INSTANCE = new Server();
+    private Database database;
 
     Map<String, User> users;
     Map<Integer, Game> games;
@@ -21,13 +22,14 @@ public class Server {
         deckLists = new HashMap<>();
         cardIdentities = new HashMap<>();
         activatedAbilities = new HashMap<>();
-        Database database = new Database();
+        this.database = new Database();
+        this.database.setDefaultUsers();
 
-        for (User user : database.getUsers()) {
+        for (User user : this.database.getUsers()) {
             users.put(user.username, user);
         }
 
-        for (CardIdentity cardIdentity : database.getCardIdentities()) {
+        for (CardIdentity cardIdentity : this.database.getCardIdentities()) {
             cardIdentities.put(cardIdentity.multiverseId, cardIdentity);
 
             for(ActivatedAbility activatedAbility : cardIdentity.activatedAbilities){
@@ -35,13 +37,18 @@ public class Server {
             }
         }
 
-        for (DeckList deckList : database.getDeckLists()) {
+        for (DeckList deckList : this.database.getDeckLists()) {
             deckLists.put(deckList.id, deckList);
         }
     }
 
     public Game createGame(String username, int deckListId) {
         User user = users.get(username);
+        if(user == null){
+            user = new User(username);
+            this.database.addUser(user);
+            this.users.put(user.username, user);
+        }
         DeckList deckList = deckLists.get(deckListId);
         Game game = new Game();
         games.put(game.id, game);
@@ -54,6 +61,11 @@ public class Server {
     public Game joinGame(int gameId, String username, int deckListId) {
         Game game = games.get(gameId);
         User user = users.get(username);
+        if(user == null){
+            user = new User(username);
+            this.database.addUser(user);
+            this.users.put(user.username, user);
+        }
         DeckList deckList = deckLists.get(deckListId);
         Player player = new Player(user, createDeck(deckList));
         game.join(player);

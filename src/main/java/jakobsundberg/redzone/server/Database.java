@@ -4,6 +4,7 @@ import java.util.*;
 
 public class Database {
     private Set<CardIdentity> cardIdentities = new HashSet<>();
+    private Set<User> users = new HashSet<>();
 
     public Database() {
         List<Cost> swampActivatedAbilityCost = new LinkedList<>();
@@ -23,11 +24,17 @@ public class Database {
     }
 
     public Set<User> getUsers() {
-        Set<User> result = new HashSet<User>();
-        result.add(new User("jakob"));
-        result.add(new User("william"));
-        result.add(new User("staffan"));
-        return result;
+        return this.users;
+    }
+
+    public void addUser(User username){
+        this.users.add(username);
+    }
+
+    public void setDefaultUsers() {
+        this.users.add(new User("jakob"));
+        this.users.add(new User("william"));
+        this.users.add(new User("staffan"));
     }
 
     public Set<CardIdentity> getCardIdentities() {
